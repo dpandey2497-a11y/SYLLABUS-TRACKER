@@ -209,7 +209,7 @@
         </div>
 
         <!-- Subjects & Topics Container (Strict Vertical Layout) -->
-        <div id="subjectsListContainer" class="space-y-4">
+        <div id="subjectsListContainer" class="space-y-5">
             <!-- Dynamically populated -->
         </div>
 
@@ -238,7 +238,7 @@
                     Subject Name
                 </label>
                 <input type="text" id="subjectNameInput" placeholder="e.g. Science & Technology, Ancient History"
-                    class="w-full text-xs font-medium p-3 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    class="w-full text-sm font-medium p-3 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
             </div>
 
             <!-- Modal Action Buttons -->
@@ -692,16 +692,13 @@
         }
 
         function ensureSchemaIntegrity() {
-            // UPSC color sync
             if (appData.upsc) {
                 appData.upsc.theme = "from-cyan-700 via-teal-700 to-emerald-800";
             }
-            // UGC NET color sync
             if (appData.ugc) {
                 appData.ugc.theme = "from-violet-800 via-purple-700 to-indigo-900";
             }
 
-            // Ensure every topic has 3-state status and priority tag
             for (let secKey in appData) {
                 const sec = appData[secKey];
                 const listArrays = sec.hasSubTiers ? [sec.tier1 || [], sec.tier2 || []] : [sec.topicsList || []];
@@ -727,7 +724,6 @@
             const searchInput = document.getElementById('searchInput');
             if (searchInput) searchInput.value = '';
 
-            // Update Tab styles
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = "tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800";
             });
@@ -829,7 +825,7 @@
                 });
 
                 const subCard = document.createElement('div');
-                subCard.className = "bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder p-4 sm:p-5 shadow-sm transition-all";
+                subCard.className = "bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder p-5 sm:p-6 shadow-sm transition-all";
 
                 // Subject Header
                 const totalInSub = (subject.topics || []).length;
@@ -838,30 +834,31 @@
                 const subScore = totalInSub > 0 ? Math.round(((completedInSub + inProgressInSub * 0.5) / totalInSub) * 100) : 0;
 
                 subCard.innerHTML = `
-                    <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-darkborder mb-3.5 flex-wrap gap-2">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500 flex-shrink-0"></span>
-                            <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 truncate">${subject.name}</h3>
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-darkborder mb-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-3.5 h-3.5 rounded-full bg-teal-500 flex-shrink-0 shadow-sm shadow-teal-500/50"></span>
+                            <!-- Bada Bold Subject Name -->
+                            <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">${subject.name}</h3>
                         </div>
                         <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
                             <!-- Bada Percentage Badge -->
-                            <span class="text-sm sm:text-base font-black text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-3.5 py-1.5 rounded-xl border border-teal-200 dark:border-teal-900/40 shadow-sm">
+                            <span class="text-base sm:text-lg font-black text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-4 py-1.5 rounded-xl border border-teal-200 dark:border-teal-800 shadow-sm">
                                 ${subScore}%
                             </span>
                             <!-- Bada Add Topic (+) Button -->
                             <button onclick="openAddTopicModal('${subject.id}')" title="Add topic to this subject"
-                                class="text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1.5 transition-colors">
-                                <i class="fa-solid fa-circle-plus text-xl sm:text-2xl"></i>
+                                class="text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1.5 transition-transform hover:scale-110">
+                                <i class="fa-solid fa-circle-plus text-2xl sm:text-3xl text-teal-600 dark:text-teal-400"></i>
                             </button>
                             <!-- Bada Rename Subject (Pencil) Button -->
                             <button onclick="editSubjectName('${subject.id}')" title="Rename Subject"
-                                class="text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1.5 transition-colors">
-                                <i class="fa-solid fa-pen-to-square text-lg sm:text-xl"></i>
+                                class="text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1.5 transition-transform hover:scale-110">
+                                <i class="fa-solid fa-pen-to-square text-xl sm:text-2xl"></i>
                             </button>
                             <!-- Bada Delete Subject (Trash) Button -->
                             <button onclick="deleteSubject('${subject.id}')" title="Delete Subject"
-                                class="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 transition-colors">
-                                <i class="fa-solid fa-trash-can text-lg sm:text-xl"></i>
+                                class="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 transition-transform hover:scale-110">
+                                <i class="fa-solid fa-trash-can text-xl sm:text-2xl"></i>
                             </button>
                         </div>
                     </div>
@@ -869,7 +866,7 @@
 
                 // Topics List Container
                 const topicListDiv = document.createElement('div');
-                topicListDiv.className = "space-y-2";
+                topicListDiv.className = "space-y-3";
 
                 if (filteredTopics.length === 0) {
                     topicListDiv.innerHTML = `<div class="text-xs text-slate-400 py-3 text-center italic">No topics matching current filters.</div>`;
@@ -885,49 +882,70 @@
             });
         }
 
-        // 3-State Interactive Topic Row
+        // Colorful & Large 3-State Interactive Topic Row
         function createTopicRowElement(subjectId, topic) {
             const div = document.createElement('div');
             
             // Priority Tag details
             const priConfig = {
-                high: { label: "HIGH", bg: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200 dark:border-rose-900" },
-                medium: { label: "MED", bg: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-900" },
-                low: { label: "LOW", bg: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700" }
+                high: { label: "HIGH", bg: "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300 border-rose-300 dark:border-rose-900 font-bold" },
+                medium: { label: "MED", bg: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-900 font-bold" },
+                low: { label: "LOW", bg: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700 font-bold" }
             }[topic.priority || 'medium'];
 
-            // Status Styling
+            // Status Styling (Vibrant & Rich Contrast)
             let statusBadge = '';
             let checkIcon = '';
-            let textClass = 'text-slate-700 dark:text-slate-200';
-            let bgClass = 'bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border-slate-200 dark:border-darkborder';
+            let textClass = 'text-slate-800 dark:text-slate-100 font-semibold text-sm sm:text-base md:text-lg';
+            let cardClass = 'bg-slate-50/80 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border-slate-200 dark:border-slate-700';
 
             if (topic.status === 'completed') {
-                statusBadge = `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">Done</span>`;
-                checkIcon = `<div class="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-check"></i></div>`;
-                textClass = 'line-through text-slate-400 dark:text-slate-500';
-                bgClass = 'bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-200/50 dark:border-emerald-900/30';
+                // Vibrant Emerald Green
+                statusBadge = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-emerald-500/30">
+                        <i class="fa-solid fa-check text-xs"></i> Done
+                    </span>`;
+                checkIcon = `
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-green-500 text-white flex items-center justify-center text-sm sm:text-base shadow-md shadow-emerald-500/30 ring-2 ring-emerald-400/30 flex-shrink-0">
+                        <i class="fa-solid fa-check"></i>
+                    </div>`;
+                textClass = 'line-through text-slate-400 dark:text-slate-500 font-semibold text-sm sm:text-base md:text-lg';
+                cardClass = 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60 shadow-sm';
             } else if (topic.status === 'in-progress') {
-                statusBadge = `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">Progress</span>`;
-                checkIcon = `<div class="w-5 h-5 rounded-md border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center text-[10px]"><i class="fa-solid fa-hourglass-half"></i></div>`;
-                bgClass = 'bg-amber-50/20 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-900/30';
+                // Vibrant Amber/Yellow Glow
+                statusBadge = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-amber-500/30 animate-pulse">
+                        <i class="fa-solid fa-hourglass-half text-xs"></i> Progress
+                    </span>`;
+                checkIcon = `
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center text-xs sm:text-sm shadow-md shadow-amber-500/40 ring-2 ring-amber-400/40 flex-shrink-0">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>`;
+                cardClass = 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/60 shadow-sm';
             } else {
-                statusBadge = `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">Pending</span>`;
-                checkIcon = `<div class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600"></div>`;
+                // Subtle Pending State
+                statusBadge = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs sm:text-sm uppercase tracking-wider">
+                        Pending
+                    </span>`;
+                checkIcon = `
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-slate-400 flex items-center justify-center flex-shrink-0 bg-white/50 dark:bg-slate-800/50">
+                        <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                    </div>`;
             }
 
-            div.className = `flex items-center justify-between p-2.5 sm:p-3 rounded-xl border ${bgClass} cursor-pointer transition-all gap-3 select-none`;
+            div.className = `flex items-center justify-between p-3.5 sm:p-4 rounded-xl border ${cardClass} cursor-pointer transition-all gap-3 select-none hover:shadow-sm`;
             
             div.innerHTML = `
-                <div class="flex items-center gap-3 flex-1 min-w-0" onclick="cycleTopicStatus('${subjectId}', '${topic.id}')">
+                <div class="flex items-center gap-3.5 flex-1 min-w-0" onclick="cycleTopicStatus('${subjectId}', '${topic.id}')">
                     ${checkIcon}
-                    <span class="text-xs sm:text-sm font-medium ${textClass} break-words leading-relaxed">${topic.text}</span>
+                    <span class="${textClass} break-words leading-relaxed">${topic.text}</span>
                 </div>
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${priConfig.bg}">${priConfig.label}</span>
+                <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <span class="text-[11px] sm:text-xs font-black px-2.5 py-1 rounded-lg border ${priConfig.bg}">${priConfig.label}</span>
                     <div onclick="cycleTopicStatus('${subjectId}', '${topic.id}')">${statusBadge}</div>
                     <button onclick="deleteTopic('${subjectId}', '${topic.id}')" title="Delete Topic"
-                        class="text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 p-1 ml-1 text-xs transition-colors">
+                        class="text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 ml-1 text-sm sm:text-base transition-colors">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
@@ -968,9 +986,7 @@
             renderCurrentView();
         }
 
-        // ============================================
-        // CUSTOMIZE SUBJECT FEATURE (ADD, EDIT, DELETE)
-        // ============================================
+        // Customize Subject Feature
         function openSubjectModal(subjectId = null) {
             const sec = appData[currentSectionKey];
             const modalTitle = document.getElementById('subjectModalTitle');
@@ -1037,13 +1053,11 @@
             }
 
             if (editingId) {
-                // Rename existing subject
                 const sub = targetList.find(s => s.id === editingId);
                 if (sub) {
                     sub.name = name;
                 }
             } else {
-                // Add new custom subject
                 targetList.push({
                     id: 'sub_custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                     name: name,
@@ -1187,7 +1201,6 @@
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
 
-            // Split by comma or new line
             const lines = rawText.split(/[\n,]+/).map(t => t.trim()).filter(t => t.length > 0);
             
             lines.forEach(text => {
