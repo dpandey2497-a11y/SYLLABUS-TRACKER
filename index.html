@@ -838,26 +838,30 @@
                 const subScore = totalInSub > 0 ? Math.round(((completedInSub + inProgressInSub * 0.5) / totalInSub) * 100) : 0;
 
                 subCard.innerHTML = `
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkborder mb-3 flex-wrap gap-2">
+                    <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-darkborder mb-3.5 flex-wrap gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-2.5 h-2.5 rounded-full bg-teal-500 flex-shrink-0"></span>
                             <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 truncate">${subject.name}</h3>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 px-2.5 py-1 rounded-md">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+                            <!-- Bada Percentage Badge -->
+                            <span class="text-sm sm:text-base font-black text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 px-3.5 py-1.5 rounded-xl border border-teal-200 dark:border-teal-900/40 shadow-sm">
                                 ${subScore}%
                             </span>
+                            <!-- Bada Add Topic (+) Button -->
                             <button onclick="openAddTopicModal('${subject.id}')" title="Add topic to this subject"
-                                class="text-xs text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1">
-                                <i class="fa-solid fa-plus-circle text-base"></i>
+                                class="text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1.5 transition-colors">
+                                <i class="fa-solid fa-circle-plus text-xl sm:text-2xl"></i>
                             </button>
+                            <!-- Bada Rename Subject (Pencil) Button -->
                             <button onclick="editSubjectName('${subject.id}')" title="Rename Subject"
-                                class="text-xs text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1">
-                                <i class="fa-solid fa-pen text-sm"></i>
+                                class="text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1.5 transition-colors">
+                                <i class="fa-solid fa-pen-to-square text-lg sm:text-xl"></i>
                             </button>
+                            <!-- Bada Delete Subject (Trash) Button -->
                             <button onclick="deleteSubject('${subject.id}')" title="Delete Subject"
-                                class="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1">
-                                <i class="fa-solid fa-trash text-sm"></i>
+                                class="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 transition-colors">
+                                <i class="fa-solid fa-trash-can text-lg sm:text-xl"></i>
                             </button>
                         </div>
                     </div>
