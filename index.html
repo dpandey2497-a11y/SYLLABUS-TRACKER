@@ -173,7 +173,7 @@
             </div>
         </div>
 
-        <!-- Action Bar: Add Topic, Filters, Legend -->
+        <!-- Action Bar: Add Topic, Add Subject, Filters, Legend -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-darkcard p-4 rounded-xl border border-slate-200 dark:border-darkborder">
             <div class="flex items-center gap-2 flex-wrap">
                 <!-- Status Filter -->
@@ -197,7 +197,11 @@
                 </span>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- Subject & Topic Action Buttons -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="openSubjectModal()" class="w-full sm:w-auto px-3.5 py-2 rounded-lg text-xs font-bold border border-teal-600 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-folder-plus"></i> <span id="addSubjectBtnText">Add Subject</span>
+                </button>
                 <button onclick="openAddTopicModal()" class="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center gap-2 shadow-sm">
                     <i class="fa-solid fa-plus"></i> Add Topic
                 </button>
@@ -210,6 +214,44 @@
         </div>
 
     </main>
+
+    <!-- Modal: Customize / Add / Rename Subject -->
+    <div id="subjectModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-darkborder pb-3">
+                <h3 id="subjectModalTitle" class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-teal-600"></i> Add New Subject
+                </h3>
+                <button onclick="closeSubjectModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p id="subjectModalSubtext" class="text-xs text-slate-500 dark:text-slate-400">
+                Adding subject into current active section.
+            </p>
+
+            <input type="hidden" id="editingSubjectId" value="">
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                    Subject Name
+                </label>
+                <input type="text" id="subjectNameInput" placeholder="e.g. Science & Technology, Ancient History"
+                    class="w-full text-xs font-medium p-3 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button onclick="closeSubjectModal()" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    Cancel
+                </button>
+                <button onclick="saveCustomSubject()" class="px-5 py-2 rounded-lg text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-md">
+                    Save Subject
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Add Topic with Priority -->
     <div id="addTopicModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -718,6 +760,7 @@
             const subTierWrapper = document.getElementById('subTierWrapper');
             const subBtn1 = document.getElementById('subTierBtn1');
             const subBtn2 = document.getElementById('subTierBtn2');
+            const addSubBtnText = document.getElementById('addSubjectBtnText');
 
             if (sec.hasSubTiers) {
                 subTierWrapper.classList.remove('hidden');
@@ -730,12 +773,15 @@
                 if (currentSubTier === 'tier1') {
                     subBtn1.className = activeClasses;
                     subBtn2.className = inactiveClasses;
+                    if (addSubBtnText) addSubBtnText.innerText = `Add Subject to ${sec.tierNames.tier1}`;
                 } else {
                     subBtn1.className = inactiveClasses;
                     subBtn2.className = activeClasses;
+                    if (addSubBtnText) addSubBtnText.innerText = `Add Subject to ${sec.tierNames.tier2}`;
                 }
             } else {
                 subTierWrapper.classList.add('hidden');
+                if (addSubBtnText) addSubBtnText.innerText = "Add Subject";
             }
 
             // 3. Render Subject & Topics in Unified Vertical Layout
@@ -765,9 +811,11 @@
             if (!subjects || subjects.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12 bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder p-8">
-                        <i class="fa-solid fa-clipboard-list text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
-                        <p class="text-sm font-semibold text-slate-500">No subjects found in this section.</p>
-                        <button onclick="openAddTopicModal()" class="mt-4 px-4 py-2 text-xs font-bold text-white bg-teal-600 rounded-lg">Add First Topic</button>
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                        <p class="text-sm font-semibold text-slate-500">No subjects found here.</p>
+                        <button onclick="openSubjectModal()" class="mt-4 px-4 py-2 text-xs font-bold text-white bg-teal-600 rounded-lg">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Custom Subject
+                        </button>
                     </div>`;
                 return;
             }
@@ -790,18 +838,26 @@
                 const subScore = totalInSub > 0 ? Math.round(((completedInSub + inProgressInSub * 0.5) / totalInSub) * 100) : 0;
 
                 subCard.innerHTML = `
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkborder mb-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
-                            <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">${subject.name}</h3>
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkborder mb-3 flex-wrap gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500 flex-shrink-0"></span>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 truncate">${subject.name}</h3>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
                             <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 px-2.5 py-1 rounded-md">
                                 ${subScore}%
                             </span>
                             <button onclick="openAddTopicModal('${subject.id}')" title="Add topic to this subject"
                                 class="text-xs text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1">
                                 <i class="fa-solid fa-plus-circle text-base"></i>
+                            </button>
+                            <button onclick="editSubjectName('${subject.id}')" title="Rename Subject"
+                                class="text-xs text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1">
+                                <i class="fa-solid fa-pen text-sm"></i>
+                            </button>
+                            <button onclick="deleteSubject('${subject.id}')" title="Delete Subject"
+                                class="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1">
+                                <i class="fa-solid fa-trash text-sm"></i>
                             </button>
                         </div>
                     </div>
@@ -908,6 +964,122 @@
             renderCurrentView();
         }
 
+        // ============================================
+        // CUSTOMIZE SUBJECT FEATURE (ADD, EDIT, DELETE)
+        // ============================================
+        function openSubjectModal(subjectId = null) {
+            const sec = appData[currentSectionKey];
+            const modalTitle = document.getElementById('subjectModalTitle');
+            const modalSubtext = document.getElementById('subjectModalSubtext');
+            const input = document.getElementById('subjectNameInput');
+            const editingId = document.getElementById('editingSubjectId');
+
+            let targetTierName = "";
+            if (sec.hasSubTiers) {
+                targetTierName = currentSubTier === 'tier1' ? sec.tierNames.tier1 : sec.tierNames.tier2;
+                modalSubtext.innerText = `Adding/Modifying subject in ${sec.title} (${targetTierName})`;
+            } else {
+                modalSubtext.innerText = `Adding/Modifying subject in ${sec.title}`;
+            }
+
+            if (subjectId) {
+                const subjects = getActiveSubjectsList();
+                const sub = subjects.find(s => s.id === subjectId);
+                editingId.value = subjectId;
+                input.value = sub ? sub.name : '';
+                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> Rename Subject`;
+            } else {
+                editingId.value = '';
+                input.value = '';
+                modalTitle.innerHTML = `<i class="fa-solid fa-folder-plus text-teal-600"></i> Add New Subject`;
+            }
+
+            document.getElementById('subjectModal').classList.remove('hidden');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.add('hidden');
+            document.getElementById('editingSubjectId').value = '';
+            document.getElementById('subjectNameInput').value = '';
+        }
+
+        function editSubjectName(subjectId) {
+            openSubjectModal(subjectId);
+        }
+
+        function saveCustomSubject() {
+            const name = document.getElementById('subjectNameInput').value.trim();
+            const editingId = document.getElementById('editingSubjectId').value;
+
+            if (!name) {
+                alert("Please enter a subject name.");
+                return;
+            }
+
+            const sec = appData[currentSectionKey];
+            let targetList;
+            if (sec.hasSubTiers) {
+                if (currentSubTier === 'tier1') {
+                    if (!sec.tier1) sec.tier1 = [];
+                    targetList = sec.tier1;
+                } else {
+                    if (!sec.tier2) sec.tier2 = [];
+                    targetList = sec.tier2;
+                }
+            } else {
+                if (!sec.topicsList) sec.topicsList = [];
+                targetList = sec.topicsList;
+            }
+
+            if (editingId) {
+                // Rename existing subject
+                const sub = targetList.find(s => s.id === editingId);
+                if (sub) {
+                    sub.name = name;
+                }
+            } else {
+                // Add new custom subject
+                targetList.push({
+                    id: 'sub_custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    name: name,
+                    color: "teal",
+                    topics: []
+                });
+            }
+
+            saveAppData();
+            closeSubjectModal();
+            renderCurrentView();
+        }
+
+        function deleteSubject(subjectId) {
+            const subjects = getActiveSubjectsList();
+            const sub = subjects.find(s => s.id === subjectId);
+            if (!sub) return;
+
+            const count = (sub.topics || []).length;
+            const confirmMsg = count > 0 
+                ? `Subject "${sub.name}" contains ${count} topics. Do you want to delete this subject and all its topics?`
+                : `Are you sure you want to delete subject "${sub.name}"?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const sec = appData[currentSectionKey];
+            if (sec.hasSubTiers) {
+                if (currentSubTier === 'tier1') {
+                    sec.tier1 = sec.tier1.filter(s => s.id !== subjectId);
+                } else {
+                    sec.tier2 = sec.tier2.filter(s => s.id !== subjectId);
+                }
+            } else {
+                sec.topicsList = sec.topicsList.filter(s => s.id !== subjectId);
+            }
+
+            saveAppData();
+            renderCurrentView();
+        }
+
         // Progress Calculation
         function updateStatistics(subjects) {
             let total = 0;
@@ -953,6 +1125,12 @@
             const subjects = getActiveSubjectsList();
             const selectEl = document.getElementById('modalSubjectSelect');
             selectEl.innerHTML = '';
+
+            if (subjects.length === 0) {
+                alert("Please add a Subject first before adding topics.");
+                openSubjectModal();
+                return;
+            }
 
             subjects.forEach(s => {
                 const opt = document.createElement('option');
