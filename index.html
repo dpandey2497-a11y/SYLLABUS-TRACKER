@@ -173,7 +173,7 @@
             </div>
         </div>
 
-        <!-- Action Bar: Add Topic, Add Subject, Filters, Legend -->
+        <!-- Action Bar: Add Topic, Add Subject, Filters -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-darkcard p-4 rounded-xl border border-slate-200 dark:border-darkborder">
             <div class="flex items-center gap-2 flex-wrap">
                 <!-- Status Filter -->
@@ -192,7 +192,12 @@
                     <option value="low">Low Priority</option>
                 </select>
 
-                <span class="text-xs text-slate-400 dark:text-slate-500 hidden lg:inline">
+                <!-- Subject Filter Dropdown (Right side of All Priorities) -->
+                <select id="subjectFilter" onchange="applyFilters()" class="text-xs font-semibold px-3 py-2 rounded-lg border border-teal-300 dark:border-teal-700/60 bg-teal-50/50 dark:bg-teal-950/30 text-teal-800 dark:text-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-500 max-w-[200px]">
+                    <option value="all">All Subjects</option>
+                </select>
+
+                <span class="text-xs text-slate-400 dark:text-slate-500 hidden xl:inline">
                     <i class="fa-solid fa-circle-info mr-1"></i>Tap topic to cycle: Pending ➔ Progress ➔ Done
                 </span>
             </div>
@@ -740,6 +745,27 @@
             renderCurrentView();
         }
 
+        // Populate the Subject Filter Dropdown
+        function populateSubjectFilter(subjects) {
+            const filterEl = document.getElementById('subjectFilter');
+            const previousVal = filterEl.value;
+            filterEl.innerHTML = '<option value="all">All Subjects</option>';
+
+            subjects.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.text = s.name;
+                filterEl.appendChild(opt);
+            });
+
+            // Keep selection if exists, else reset to all
+            if (subjects.some(s => s.id === previousVal)) {
+                filterEl.value = previousVal;
+            } else {
+                filterEl.value = 'all';
+            }
+        }
+
         // Render Current Exam View
         function renderCurrentView() {
             const sec = appData[currentSectionKey];
@@ -780,8 +806,9 @@
                 if (addSubBtnText) addSubBtnText.innerText = "Add Subject";
             }
 
-            // 3. Render Subject & Topics in Unified Vertical Layout
+            // 3. Populate Subjects Dropdown & Render Topics
             const subjects = getActiveSubjectsList();
+            populateSubjectFilter(subjects);
             renderSubjectsList(subjects);
 
             // 4. Update Header Metrics
@@ -803,6 +830,7 @@
 
             const statusFilter = document.getElementById('statusFilter').value;
             const priorityFilter = document.getElementById('priorityFilter').value;
+            const subjectFilterVal = document.getElementById('subjectFilter').value;
 
             if (!subjects || subjects.length === 0) {
                 container.innerHTML = `
@@ -816,7 +844,20 @@
                 return;
             }
 
-            subjects.forEach(subject => {
+            // Filter subjects by dropdown if selected
+            const visibleSubjects = subjectFilterVal === 'all'
+                ? subjects
+                : subjects.filter(s => s.id === subjectFilterVal);
+
+            if (visibleSubjects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder p-6">
+                        <p class="text-sm font-bold text-slate-500">No matching subject found.</p>
+                    </div>`;
+                return;
+            }
+
+            visibleSubjects.forEach(subject => {
                 let filteredTopics = (subject.topics || []).filter(topic => {
                     const matchesSearch = topic.text.toLowerCase().includes(searchQuery.toLowerCase());
                     const matchesStatus = statusFilter === 'all' || topic.status === statusFilter;
@@ -893,14 +934,13 @@
                 low: { label: "LOW", bg: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700 font-bold" }
             }[topic.priority || 'medium'];
 
-            // Status Styling (Vibrant & Rich Contrast)
+            // Status Styling
             let statusBadge = '';
             let checkIcon = '';
             let textClass = 'text-slate-800 dark:text-slate-100 font-semibold text-sm sm:text-base md:text-lg';
             let cardClass = 'bg-slate-50/80 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border-slate-200 dark:border-slate-700';
 
             if (topic.status === 'completed') {
-                // Vibrant Emerald Green
                 statusBadge = `
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-emerald-500/30">
                         <i class="fa-solid fa-check text-xs"></i> Done
@@ -912,7 +952,6 @@
                 textClass = 'line-through text-slate-400 dark:text-slate-500 font-semibold text-sm sm:text-base md:text-lg';
                 cardClass = 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60 shadow-sm';
             } else if (topic.status === 'in-progress') {
-                // Vibrant Amber/Yellow Glow
                 statusBadge = `
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-amber-500/30 animate-pulse">
                         <i class="fa-solid fa-hourglass-half text-xs"></i> Progress
@@ -923,7 +962,6 @@
                     </div>`;
                 cardClass = 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/60 shadow-sm';
             } else {
-                // Subtle Pending State
                 statusBadge = `
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs sm:text-sm uppercase tracking-wider">
                         Pending
