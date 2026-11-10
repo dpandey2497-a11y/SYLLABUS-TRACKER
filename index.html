@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syllabus Tracker</title>
+    
+    <!-- PWA Settings (Fixes Install & Launch Glitch) -->
+    <meta name="theme-color" content="#0f766e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Syllabus Tracker">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Syllabus Tracker","short_name":"Syllabus","start_url":"./?source=pwa","display":"standalone","background_color":"#0f172a","theme_color":"#0f766e","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3413/3413535.png","sizes":"512x512","type":"image/png"}]}'>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -55,6 +63,13 @@
 
             <!-- Header Controls -->
             <div class="flex items-center gap-2">
+                <!-- Direct In-App Install Button -->
+                <button id="pwaInstallHeaderBtn" onclick="triggerPWAInstall()" 
+                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-sm shadow-teal-500/30 transition-all animate-bounce">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span>Install App</span>
+                </button>
+
                 <!-- Live Search -->
                 <div class="relative hidden sm:block w-48 md:w-64">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
@@ -192,7 +207,7 @@
                     <option value="low">Low Priority</option>
                 </select>
 
-                <!-- Subject Filter Dropdown (Right side of All Priorities) -->
+                <!-- Subject Filter Dropdown -->
                 <select id="subjectFilter" onchange="applyFilters()" class="text-xs font-semibold px-3 py-2 rounded-lg border border-teal-300 dark:border-teal-700/60 bg-teal-50/50 dark:bg-teal-950/30 text-teal-800 dark:text-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-500 max-w-[200px]">
                     <option value="all">All Subjects</option>
                 </select>
@@ -213,7 +228,7 @@
             </div>
         </div>
 
-        <!-- Subjects & Topics Container (Strict Vertical Layout) -->
+        <!-- Subjects & Topics Container -->
         <div id="subjectsListContainer" class="space-y-5">
             <!-- Dynamically populated -->
         </div>
@@ -246,7 +261,6 @@
                     class="w-full text-sm font-medium p-3 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
             </div>
 
-            <!-- Modal Action Buttons -->
             <div class="flex items-center justify-end gap-2 pt-2">
                 <button onclick="closeSubjectModal()" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                     Cancel
@@ -270,14 +284,12 @@
                 </button>
             </div>
 
-            <!-- Subject Selection -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Target Subject</label>
                 <select id="modalSubjectSelect" class="w-full text-xs font-medium p-2.5 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 </select>
             </div>
 
-            <!-- Topic Textarea (Supports Bulk Comma / Newline) -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                     Topics (One per line or comma-separated)
@@ -286,7 +298,6 @@
                     class="w-full text-xs p-3 rounded-lg border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
             </div>
 
-            <!-- Priority Selection -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Priority Level</label>
                 <div class="grid grid-cols-3 gap-2">
@@ -305,7 +316,6 @@
                 </div>
             </div>
 
-            <!-- Modal Action Buttons -->
             <div class="flex items-center justify-end gap-2 pt-2">
                 <button onclick="closeAddTopicModal()" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                     Cancel
@@ -354,11 +364,9 @@
 
     <!-- Application Script -->
     <script>
-        // Storage Keys
         const STORAGE_KEY = 'syllabus_tracker_v3_data';
         const THEME_KEY = 'syllabus_tracker_theme';
 
-        // Default Initial Syllabus Structure
         const defaultData = {
             upsc: {
                 title: "UPSC CSE",
@@ -631,21 +639,48 @@
             }
         };
 
-        // Runtime State
         let appData = {};
         let currentSectionKey = 'upsc';
         let currentSubTier = 'tier1';
         let activePrioritySelect = 'high';
         let searchQuery = '';
+        let deferredPrompt = null;
 
-        // Initialize Application
+        // PWA Direct Install Handler
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('pwaInstallHeaderBtn');
+            if (btn) btn.classList.remove('hidden');
+        });
+
+        function triggerPWAInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('pwaInstallHeaderBtn').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("Installation prompt: Agar browser popup na aaye toh browser ke 3-dots menu par tap karke 'Add to Home screen' chunein.");
+            }
+        }
+
         function initApp() {
             loadTheme();
             loadAppData();
             renderCurrentView();
+
+            // Simple Dummy Service Worker to satisfy Chrome PWA rules
+            if ('serviceWorker' in navigator) {
+                const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(function() { return new Response('Offline'); })); });`;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+            }
         }
 
-        // Theme Support
         function loadTheme() {
             const saved = localStorage.getItem(THEME_KEY);
             if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -660,7 +695,6 @@
             localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
         }
 
-        // Full Screen Toggle
         function toggleFullScreen() {
             const icon = document.getElementById('fsIcon');
             if (!document.fullscreenElement) {
@@ -676,7 +710,6 @@
             }
         }
 
-        // Local Storage Sync
         function loadAppData() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
@@ -684,7 +717,6 @@
                     appData = JSON.parse(saved);
                     ensureSchemaIntegrity();
                 } catch(e) {
-                    console.error("Failed to parse saved data. Fallback to default.", e);
                     appData = JSON.parse(JSON.stringify(defaultData));
                 }
             } else {
@@ -697,12 +729,8 @@
         }
 
         function ensureSchemaIntegrity() {
-            if (appData.upsc) {
-                appData.upsc.theme = "from-cyan-700 via-teal-700 to-emerald-800";
-            }
-            if (appData.ugc) {
-                appData.ugc.theme = "from-violet-800 via-purple-700 to-indigo-900";
-            }
+            if (appData.upsc) appData.upsc.theme = "from-cyan-700 via-teal-700 to-emerald-800";
+            if (appData.ugc) appData.ugc.theme = "from-violet-800 via-purple-700 to-indigo-900";
 
             for (let secKey in appData) {
                 const sec = appData[secKey];
@@ -721,7 +749,6 @@
             }
         }
 
-        // Section & Sub-tier Navigation
         function switchSection(secKey) {
             currentSectionKey = secKey;
             currentSubTier = 'tier1';
@@ -745,7 +772,6 @@
             renderCurrentView();
         }
 
-        // Populate the Subject Filter Dropdown
         function populateSubjectFilter(subjects) {
             const filterEl = document.getElementById('subjectFilter');
             const previousVal = filterEl.value;
@@ -758,7 +784,6 @@
                 filterEl.appendChild(opt);
             });
 
-            // Keep selection if exists, else reset to all
             if (subjects.some(s => s.id === previousVal)) {
                 filterEl.value = previousVal;
             } else {
@@ -766,19 +791,16 @@
             }
         }
 
-        // Render Current Exam View
         function renderCurrentView() {
             const sec = appData[currentSectionKey];
             if (!sec) return;
 
-            // 1. Update Banner
             const banner = document.getElementById('bannerContainer');
             banner.className = `p-6 sm:p-8 rounded-2xl text-white shadow-xl bg-gradient-to-r ${sec.theme} transition-all duration-300`;
             document.getElementById('bannerBadge').innerText = sec.badge || 'EXAM SYLLABUS';
             document.getElementById('bannerTitle').innerText = sec.title;
             document.getElementById('bannerSubtitle').innerText = sec.subtitle;
 
-            // 2. Setup Sub-Tier Toggles
             const subTierWrapper = document.getElementById('subTierWrapper');
             const subBtn1 = document.getElementById('subTierBtn1');
             const subBtn2 = document.getElementById('subTierBtn2');
@@ -806,12 +828,9 @@
                 if (addSubBtnText) addSubBtnText.innerText = "Add Subject";
             }
 
-            // 3. Populate Subjects Dropdown & Render Topics
             const subjects = getActiveSubjectsList();
             populateSubjectFilter(subjects);
             renderSubjectsList(subjects);
-
-            // 4. Update Header Metrics
             updateStatistics(subjects);
         }
 
@@ -844,7 +863,6 @@
                 return;
             }
 
-            // Filter subjects by dropdown if selected
             const visibleSubjects = subjectFilterVal === 'all'
                 ? subjects
                 : subjects.filter(s => s.id === subjectFilterVal);
@@ -868,7 +886,6 @@
                 const subCard = document.createElement('div');
                 subCard.className = "bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder p-5 sm:p-6 shadow-sm transition-all";
 
-                // Subject Header
                 const totalInSub = (subject.topics || []).length;
                 const completedInSub = (subject.topics || []).filter(t => t.status === 'completed').length;
                 const inProgressInSub = (subject.topics || []).filter(t => t.status === 'in-progress').length;
@@ -878,25 +895,20 @@
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-darkborder mb-4 flex-wrap gap-2">
                         <div class="flex items-center gap-3 min-w-0">
                             <span class="w-3.5 h-3.5 rounded-full bg-teal-500 flex-shrink-0 shadow-sm shadow-teal-500/50"></span>
-                            <!-- Bada Bold Subject Name -->
                             <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">${subject.name}</h3>
                         </div>
                         <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-                            <!-- Bada Percentage Badge -->
                             <span class="text-base sm:text-lg font-black text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-4 py-1.5 rounded-xl border border-teal-200 dark:border-teal-800 shadow-sm">
                                 ${subScore}%
                             </span>
-                            <!-- Bada Add Topic (+) Button -->
                             <button onclick="openAddTopicModal('${subject.id}')" title="Add topic to this subject"
                                 class="text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 p-1.5 transition-transform hover:scale-110">
                                 <i class="fa-solid fa-circle-plus text-2xl sm:text-3xl text-teal-600 dark:text-teal-400"></i>
                             </button>
-                            <!-- Bada Rename Subject (Pencil) Button -->
                             <button onclick="editSubjectName('${subject.id}')" title="Rename Subject"
                                 class="text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 p-1.5 transition-transform hover:scale-110">
                                 <i class="fa-solid fa-pen-to-square text-xl sm:text-2xl"></i>
                             </button>
-                            <!-- Bada Delete Subject (Trash) Button -->
                             <button onclick="deleteSubject('${subject.id}')" title="Delete Subject"
                                 class="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 transition-transform hover:scale-110">
                                 <i class="fa-solid fa-trash-can text-xl sm:text-2xl"></i>
@@ -905,7 +917,6 @@
                     </div>
                 `;
 
-                // Topics List Container
                 const topicListDiv = document.createElement('div');
                 topicListDiv.className = "space-y-3";
 
@@ -923,18 +934,15 @@
             });
         }
 
-        // Colorful & Large 3-State Interactive Topic Row
         function createTopicRowElement(subjectId, topic) {
             const div = document.createElement('div');
             
-            // Priority Tag details
             const priConfig = {
                 high: { label: "HIGH", bg: "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300 border-rose-300 dark:border-rose-900 font-bold" },
                 medium: { label: "MED", bg: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-900 font-bold" },
                 low: { label: "LOW", bg: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-300 dark:border-slate-700 font-bold" }
             }[topic.priority || 'medium'];
 
-            // Status Styling
             let statusBadge = '';
             let checkIcon = '';
             let textClass = 'text-slate-800 dark:text-slate-100 font-semibold text-sm sm:text-base md:text-lg';
@@ -992,7 +1000,6 @@
             return div;
         }
 
-        // Cycle 3-States: Pending -> In Progress -> Completed -> Pending
         function cycleTopicStatus(subjectId, topicId) {
             const subjects = getActiveSubjectsList();
             const subject = subjects.find(s => s.id === subjectId);
@@ -1024,7 +1031,6 @@
             renderCurrentView();
         }
 
-        // Customize Subject Feature
         function openSubjectModal(subjectId = null) {
             const sec = appData[currentSectionKey];
             const modalTitle = document.getElementById('subjectModalTitle');
@@ -1136,7 +1142,6 @@
             renderCurrentView();
         }
 
-        // Progress Calculation
         function updateStatistics(subjects) {
             let total = 0;
             let done = 0;
@@ -1166,7 +1171,6 @@
             document.getElementById('pendingCount').innerText = `${pending} Pending`;
         }
 
-        // Live Search & Filter Handlers
         function handleSearch(val) {
             searchQuery = val.trim();
             renderSubjectsList(getActiveSubjectsList());
@@ -1176,7 +1180,6 @@
             renderSubjectsList(getActiveSubjectsList());
         }
 
-        // Add Topic Modal Logic
         function openAddTopicModal(preselectedSubjectId) {
             const subjects = getActiveSubjectsList();
             const selectEl = document.getElementById('modalSubjectSelect');
@@ -1255,7 +1258,6 @@
             renderCurrentView();
         }
 
-        // Backup & Restore
         function toggleBackupModal() {
             const m = document.getElementById('backupModal');
             m.classList.toggle('hidden');
@@ -1302,7 +1304,6 @@
             toggleBackupModal();
         }
 
-        // Boot Application on load
         window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
