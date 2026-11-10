@@ -4,14 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syllabus Tracker</title>
-    
-    <!-- PWA Settings (Fixes Install & Launch Glitch) -->
-    <meta name="theme-color" content="#0f766e">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Syllabus Tracker">
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Syllabus Tracker","short_name":"Syllabus","start_url":"./?source=pwa","display":"standalone","background_color":"#0f172a","theme_color":"#0f766e","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3413/3413535.png","sizes":"512x512","type":"image/png"}]}'>
-
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -63,13 +55,6 @@
 
             <!-- Header Controls -->
             <div class="flex items-center gap-2">
-                <!-- Direct In-App Install Button -->
-                <button id="pwaInstallHeaderBtn" onclick="triggerPWAInstall()" 
-                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1.5 shadow-sm shadow-teal-500/30 transition-all animate-bounce">
-                    <i class="fa-solid fa-mobile-screen-button"></i>
-                    <span>Install App</span>
-                </button>
-
                 <!-- Live Search -->
                 <div class="relative hidden sm:block w-48 md:w-64">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
@@ -644,41 +629,11 @@
         let currentSubTier = 'tier1';
         let activePrioritySelect = 'high';
         let searchQuery = '';
-        let deferredPrompt = null;
-
-        // PWA Direct Install Handler
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const btn = document.getElementById('pwaInstallHeaderBtn');
-            if (btn) btn.classList.remove('hidden');
-        });
-
-        function triggerPWAInstall() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('pwaInstallHeaderBtn').classList.add('hidden');
-                    }
-                    deferredPrompt = null;
-                });
-            } else {
-                alert("Installation prompt: Agar browser popup na aaye toh browser ke 3-dots menu par tap karke 'Add to Home screen' chunein.");
-            }
-        }
 
         function initApp() {
             loadTheme();
             loadAppData();
             renderCurrentView();
-
-            // Simple Dummy Service Worker to satisfy Chrome PWA rules
-            if ('serviceWorker' in navigator) {
-                const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(function() { return new Response('Offline'); })); });`;
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-            }
         }
 
         function loadTheme() {
